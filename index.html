@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Penambangan Koin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better content display */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        #app-container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            width: 100%;
+            max-width: 960px; /* Max width for desktop */
+            display: flex;
+            min-height: 80vh; /* Minimum height for the app container */
+            overflow: hidden;
+            position: relative;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #1a202c; /* Darker background for sidebar */
+            color: #e2e8f0; /* Light text color */
+            padding: 1.5rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            position: absolute;
+            height: 100%;
+            z-index: 20;
+            border-top-left-radius: 1rem;
+            border-bottom-left-radius: 1rem;
+        }
+        #sidebar.open {
+            transform: translateX(0);
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            #sidebar {
+                transform: translateX(0);
+                position: relative;
+                width: 200px;
+                flex-shrink: 0;
+            }
+            #menu-button {
+                display: none; /* Hide menu button on larger screens */
+            }
+            #app-container {
+                display: flex;
+            }
+        }
+        #main-content {
+            flex-grow: 1;
+            padding: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+        .section-content {
+            display: none;
+        }
+        .section-content.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.75rem; /* rounded-lg */
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Custom styles for buttons */
+        .btn-primary {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out;
+        }
+        .btn-secondary {
+            @apply bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out;
+        }
+        .btn-green {
+            @apply bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out;
+        }
+        .btn-red {
+            @apply bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out;
+        }
+        .input-field {
+            @apply shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 antialiased">
+
+    <div id="app-container">
+        <!-- Sidebar Menu -->
+        <aside id="sidebar" class="md:relative fixed h-full bg-gray-900 text-gray-200 p-6 shadow-lg transition-transform duration-300 ease-in-out z-20 transform -translate-x-full md:translate-x-0">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-blue-400">Menu</h2>
+                <button id="close-sidebar-button" class="md:hidden text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center" onclick="showSection('mining-section')">
+                            <i class="fas fa-hammer mr-3 text-lg"></i> Penambangan
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center" onclick="showSection('offer-section')">
+                            <i class="fas fa-gift mr-3 text-lg"></i> Penawaran
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center" onclick="showSection('deposit-section')">
+                            <i class="fas fa-wallet mr-3 text-lg"></i> Deposit
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center" onclick="showSection('withdrawal-section')">
+                            <i class="fas fa-exchange-alt mr-3 text-lg"></i> Penarikan
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-1 bg-white p-6 md:p-8 rounded-r-xl relative">
+            <!-- Header for Mobile -->
+            <div class="md:hidden flex justify-between items-center mb-6">
+                <button id="menu-button" class="text-gray-800 hover:text-blue-600 text-2xl focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-3xl font-extrabold text-gray-800">Website Koin</h1>
+            </div>
+
+            <!-- Current Time Display -->
+            <div class="flex justify-end mb-6">
+                <p id="current-time" class="text-xl font-medium text-gray-600 bg-gray-100 py-2 px-4 rounded-lg shadow-inner"></p>
+            </div>
+
+            <!-- Mining Section -->
+            <section id="mining-section" class="section-content active p-6 bg-blue-50 rounded-xl shadow-md">
+                <h2 class="text-3xl font-bold text-blue-700 mb-6 flex items-center">
+                    <i class="fas fa-pickaxe mr-3"></i> Penambangan Koin
+                </h2>
+                <div class="text-center mb-8">
+                    <p class="text-gray-700 text-lg mb-2">Saldo Koin Anda:</p>
+                    <p id="coin-balance" class="text-5xl font-extrabold text-green-600">0.00 Koin</p>
+                </div>
+                <div class="text-center mb-8 p-4 bg-white rounded-lg shadow-sm">
+                    <p class="text-gray-700 text-lg mb-2">Penambangan Berikutnya Dalam:</p>
+                    <p id="mining-countdown" class="text-4xl font-bold text-purple-600">--:--:--</p>
+                </div>
+                <div class="flex justify-center">
+                    <button id="mine-button" class="btn-green text-2xl py-3 px-8 transition transform hover:scale-105 active:scale-95">
+                        <i class="fas fa-coins mr-3"></i> Mulai Menambang / Klaim 0.5 Koin
+                    </button>
+                </div>
+                <p id="mining-message" class="text-center text-sm text-gray-500 mt-4"></p>
+            </section>
+
+            <!-- Offer Section -->
+            <section id="offer-section" class="section-content p-6 bg-yellow-50 rounded-xl shadow-md">
+                <h2 class="text-3xl font-bold text-yellow-700 mb-6 flex items-center">
+                    <i class="fas fa-tags mr-3"></i> Penawaran Bulanan
+                </h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Aktifkan penawaran luar biasa ini: Dapatkan <span class="font-bold text-green-600">Rp 20.000</span> setiap hari selama <span class="font-bold text-blue-600">30 hari</span>!
+                </p>
+                <p class="text-gray-700 text-lg mb-6">
+                    Biaya aktivasi: <span class="font-bold text-red-600">Rp 100.000</span> (hanya sekali).
+                </p>
+                <div id="offer-status-display" class="text-center mb-8 p-4 bg-white rounded-lg shadow-sm">
+                    <p class="text-gray-700 text-lg mb-2">Status Penawaran:</p>
+                    <p id="offer-active-status" class="text-2xl font-bold text-gray-800">Tidak Aktif</p>
+                    <p id="offer-days-left" class="text-xl font-medium text-gray-600 mt-2"></p>
+                    <p id="offer-next-claim-time" class="text-xl font-medium text-gray-600 mt-2"></p>
+                </div>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <button id="activate-offer-button" class="btn-primary text-2xl py-3 px-8 transition transform hover:scale-105 active:scale-95">
+                        <i class="fas fa-check-circle mr-3"></i> Aktifkan Penawaran
+                    </button>
+                    <button id="claim-offer-button" class="btn-green text-2xl py-3 px-8 transition transform hover:scale-105 active:scale-95">
+                        <i class="fas fa-hand-holding-usd mr-3"></i> Klaim Rp 20.000
+                    </button>
+                </div>
+                <p id="offer-message" class="text-center text-sm text-gray-500 mt-4"></p>
+            </section>
+
+            <!-- Deposit Section -->
+            <section id="deposit-section" class="section-content p-6 bg-green-50 rounded-xl shadow-md">
+                <h2 class="text-3xl font-bold text-green-700 mb-6 flex items-center">
+                    <i class="fas fa-plus-circle mr-3"></i> Deposit Koin
+                </h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Saldo IDR Anda: <span id="idr-balance" class="font-bold text-green-600">Rp 0</span>
+                </p>
+                <p class="text-gray-600 mb-6">
+                    (Simulasi: Anda bisa menambahkan saldo IDR untuk membeli koin atau mengaktifkan penawaran.)
+                </p>
+                <div class="flex justify-center">
+                    <button class="btn-primary text-2xl py-3 px-8" onclick="openModal('deposit-modal')">
+                        <i class="fas fa-wallet mr-3"></i> Lakukan Deposit
+                    </button>
+                </div>
+            </section>
+
+            <!-- Withdrawal Section -->
+            <section id="withdrawal-section" class="section-content p-6 bg-red-50 rounded-xl shadow-md">
+                <h2 class="text-3xl font-bold text-red-700 mb-6 flex items-center">
+                    <i class="fas fa-minus-circle mr-3"></i> Penarikan Koin
+                </h2>
+                <p class="text-gray-700 text-lg mb-4">
+                    Saldo Koin Anda: <span id="current-coin-balance-withdrawal" class="font-bold text-green-600">0.00 Koin</span>
+                </p>
+                <p class="text-gray-600 mb-6">
+                    (Simulasi: Anda bisa menarik koin dari saldo Anda.)
+                </p>
+                <div class="flex justify-center">
+                    <button class="btn-primary text-2xl py-3 px-8" onclick="openModal('withdrawal-modal')">
+                        <i class="fas fa-exchange-alt mr-3"></i> Lakukan Penarikan
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div id="deposit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('deposit-modal')">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Deposit IDR (Simulasi)</h3>
+            <p class="text-gray-600 mb-4">Masukkan jumlah IDR yang ingin Anda depositkan:</p>
+            <input type="number" id="deposit-amount" class="input-field" placeholder="Jumlah IDR">
+            <p id="deposit-message-modal" class="text-red-500 text-sm mb-4"></p>
+            <button class="btn-primary w-full" onclick="handleDeposit()">Deposit Sekarang</button>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdrawal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('withdrawal-modal')">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Penarikan Koin (Simulasi)</h3>
+            <p class="text-gray-600 mb-4">Saldo Anda: <span id="withdrawal-current-balance" class="font-bold text-green-600">0.00 Koin</span></p>
+            <p class="text-gray-600 mb-4">Masukkan jumlah koin yang ingin Anda tarik:</p>
+            <input type="number" id="withdrawal-amount" class="input-field" placeholder="Jumlah Koin">
+            <p id="withdrawal-message-modal" class="text-red-500 text-sm mb-4"></p>
+            <button class="btn-primary w-full" onclick="handleWithdrawal()">Tarik Sekarang</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables (persisted in LocalStorage) ---
+        let coinBalance = parseFloat(localStorage.getItem('coinBalance')) || 0.00;
+        let lastMiningTime = parseInt(localStorage.getItem('lastMiningTime')) || 0; // Timestamp in milliseconds
+        let idrBalance = parseFloat(localStorage.getItem('idrBalance')) || 0.00;
+        let dailyOfferActive = localStorage.getItem('dailyOfferActive') === 'true';
+        let dailyOfferDaysRemaining = parseInt(localStorage.getItem('dailyOfferDaysRemaining')) || 0;
+        let dailyOfferLastClaimDate = parseInt(localStorage.getItem('dailyOfferLastClaimDate')) || 0; // Timestamp for last daily offer claim
+
+        // --- DOM Elements ---
+        const coinBalanceEl = document.getElementById('coin-balance');
+        const miningCountdownEl = document.getElementById('mining-countdown');
+        const mineButton = document.getElementById('mine-button');
+        const miningMessageEl = document.getElementById('mining-message');
+        const currentTimeEl = document.getElementById('current-time');
+
+        const idrBalanceEl = document.getElementById('idr-balance');
+        const offerActiveStatusEl = document.getElementById('offer-active-status');
+        const offerDaysLeftEl = document.getElementById('offer-days-left');
+        const offerNextClaimTimeEl = document.getElementById('offer-next-claim-time');
+        const activateOfferButton = document.getElementById('activate-offer-button');
+        const claimOfferButton = document.getElementById('claim-offer-button');
+        const offerMessageEl = document.getElementById('offer-message');
+
+        const depositAmountInput = document.getElementById('deposit-amount');
+        const depositMessageModal = document.getElementById('deposit-message-modal');
+
+        const withdrawalAmountInput = document.getElementById('withdrawal-amount');
+        const withdrawalCurrentBalanceEl = document.getElementById('withdrawal-current-balance');
+        const withdrawalMessageModal = document.getElementById('withdrawal-message-modal');
+        const currentCoinBalanceWithdrawalEl = document.getElementById('current-coin-balance-withdrawal');
+
+        const sidebar = document.getElementById('sidebar');
+        const menuButton = document.getElementById('menu-button');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
+
+        // --- Constants ---
+        const MINING_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const COINS_PER_MINE = 0.50;
+        const MONTHLY_OFFER_COST = 100000; // Rp 100.000
+        const MONTHLY_OFFER_DAILY_PAYOUT = 20000; // Rp 20.000
+        const MONTHLY_OFFER_DURATION_DAYS = 30;
+
+        // --- Functions ---
+
+        /**
+         * Saves all relevant state variables to localStorage.
+         */
+        function saveState() {
+            localStorage.setItem('coinBalance', coinBalance.toFixed(2));
+            localStorage.setItem('lastMiningTime', lastMiningTime);
+            localStorage.setItem('idrBalance', idrBalance.toFixed(2));
+            localStorage.setItem('dailyOfferActive', dailyOfferActive);
+            localStorage.setItem('dailyOfferDaysRemaining', dailyOfferDaysRemaining);
+            localStorage.setItem('dailyOfferLastClaimDate', dailyOfferLastClaimDate);
+        }
+
+        /**
+         * Updates the UI elements based on the current state.
+         */
+        function updateUI() {
+            coinBalanceEl.textContent = `${coinBalance.toFixed(2)} Koin`;
+            currentCoinBalanceWithdrawalEl.textContent = `${coinBalance.toFixed(2)} Koin`;
+            withdrawalCurrentBalanceEl.textContent = `${coinBalance.toFixed(2)} Koin`;
+            idrBalanceEl.textContent = `Rp ${idrBalance.toLocaleString('id-ID')}`;
+
+            // Update Offer Section UI
+            if (dailyOfferActive) {
+                offerActiveStatusEl.textContent = "Aktif";
+                offerActiveStatusEl.classList.remove('text-red-500');
+                offerActiveStatusEl.classList.add('text-green-600');
+                offerDaysLeftEl.textContent = `Sisa Hari: ${dailyOfferDaysRemaining} dari ${MONTHLY_OFFER_DURATION_DAYS}`;
+                activateOfferButton.style.display = 'none'; // Hide activate button if active
+                claimOfferButton.style.display = 'inline-block'; // Show claim button
+
+                const now = new Date();
+                const lastClaimDateObj = new Date(dailyOfferLastClaimDate);
+                const nextClaimTime = new Date(lastClaimDateObj.getTime() + MINING_INTERVAL_MS); // 24 hours after last claim
+
+                if (now >= nextClaimTime || dailyOfferLastClaimDate === 0) {
+                    claimOfferButton.disabled = false;
+                    claimOfferButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    offerNextClaimTimeEl.textContent = "Siap Diklaim!";
+                } else {
+                    claimOfferButton.disabled = true;
+                    claimOfferButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    const timeLeft = nextClaimTime.getTime() - now.getTime();
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    offerNextClaimTimeEl.textContent = `Klaim Berikutnya Dalam: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }
+
+                if (dailyOfferDaysRemaining <= 0) {
+                    dailyOfferActive = false;
+                    saveState();
+                    updateUI(); // Re-render after deactivating
+                    offerMessageEl.textContent = "Penawaran bulanan telah berakhir.";
+                    offerMessageEl.classList.add('text-red-500');
+                }
+
+            } else {
+                offerActiveStatusEl.textContent = "Tidak Aktif";
+                offerActiveStatusEl.classList.remove('text-green-600');
+                offerActiveStatusEl.classList.add('text-red-500');
+                offerDaysLeftEl.textContent = '';
+                offerNextClaimTimeEl.textContent = '';
+                activateOfferButton.style.display = 'inline-block'; // Show activate button
+                claimOfferButton.style.display = 'none'; // Hide claim button
+            }
+
+            updateMiningCountdown();
+        }
+
+        /**
+         * Updates the mining countdown timer.
+         */
+        function updateMiningCountdown() {
+            const now = Date.now();
+            const timeElapsed = now - lastMiningTime;
+            const timeLeft = MINING_INTERVAL_MS - timeElapsed;
+
+            if (timeLeft <= 0) {
+                miningCountdownEl.textContent = "Siap Diklaim!";
+                mineButton.disabled = false;
+                mineButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                mineButton.disabled = true;
+                mineButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                miningCountdownEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+        }
+
+        /**
+         * Handles the mining claim logic.
+         */
+        function claimMining() {
+            const now = Date.now();
+            const timeElapsed = now - lastMiningTime;
+
+            if (timeElapsed >= MINING_INTERVAL_MS) {
+                coinBalance += COINS_PER_MINE;
+                lastMiningTime = now;
+                saveState();
+                updateUI();
+                miningMessageEl.textContent = `Selamat! Anda mendapatkan ${COINS_PER_MINE} Koin.`;
+                miningMessageEl.classList.remove('text-red-500');
+                miningMessageEl.classList.add('text-green-500');
+            } else {
+                miningMessageEl.textContent = "Belum waktunya menambang. Harap tunggu.";
+                miningMessageEl.classList.remove('text-green-500');
+                miningMessageEl.classList.add('text-red-500');
+            }
+        }
+
+        /**
+         * Activates the monthly offer.
+         */
+        function activateOffer() {
+            if (idrBalance >= MONTHLY_OFFER_COST) {
+                idrBalance -= MONTHLY_OFFER_COST;
+                dailyOfferActive = true;
+                dailyOfferDaysRemaining = MONTHLY_OFFER_DURATION_DAYS;
+                dailyOfferLastClaimDate = 0; // Reset last claim date to allow immediate first claim
+                saveState();
+                updateUI();
+                offerMessageEl.textContent = "Penawaran bulanan berhasil diaktifkan!";
+                offerMessageEl.classList.remove('text-red-500');
+                offerMessageEl.classList.add('text-green-500');
+            } else {
+                offerMessageEl.textContent = `Saldo IDR tidak cukup. Anda membutuhkan Rp ${MONTHLY_OFFER_COST.toLocaleString('id-ID')}.`;
+                offerMessageEl.classList.remove('text-green-500');
+                offerMessageEl.classList.add('text-red-500');
+            }
+        }
+
+        /**
+         * Claims the daily payout from the monthly offer.
+         */
+        function claimDailyOffer() {
+            if (!dailyOfferActive) {
+                offerMessageEl.textContent = "Penawaran bulanan belum aktif.";
+                offerMessageEl.classList.remove('text-green-500');
+                offerMessageEl.classList.add('text-red-500');
+                return;
+            }
+            if (dailyOfferDaysRemaining <= 0) {
+                offerMessageEl.textContent = "Penawaran bulanan telah berakhir.";
+                offerMessageEl.classList.remove('text-green-500');
+                offerMessageEl.classList.add('text-red-500');
+                dailyOfferActive = false; // Ensure it's marked as inactive
+                saveState();
+                updateUI();
+                return;
+            }
+
+            const now = Date.now();
+            const lastClaimDateObj = new Date(dailyOfferLastClaimDate);
+            const nextClaimTime = new Date(lastClaimDateObj.getTime() + MINING_INTERVAL_MS); // Use same 24hr interval
+
+            if (now >= nextClaimTime || dailyOfferLastClaimDate === 0) { // Allow immediate claim if 0
+                idrBalance += MONTHLY_OFFER_DAILY_PAYOUT;
+                dailyOfferDaysRemaining--;
+                dailyOfferLastClaimDate = now;
+                saveState();
+                updateUI();
+                offerMessageEl.textContent = `Selamat! Anda mengklaim Rp ${MONTHLY_OFFER_DAILY_PAYOUT.toLocaleString('id-ID')}. Sisa hari: ${dailyOfferDaysRemaining}.`;
+                offerMessageEl.classList.remove('text-red-500');
+                offerMessageEl.classList.add('text-green-500');
+            } else {
+                offerMessageEl.textContent = "Belum waktunya mengklaim hadiah harian. Harap tunggu.";
+                offerMessageEl.classList.remove('text-green-500');
+                offerMessageEl.classList.add('text-red-500');
+            }
+        }
+
+        /**
+         * Opens a specified modal.
+         * @param {string} modalId - The ID of the modal to open.
+         */
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+            if (modalId === 'withdrawal-modal') {
+                withdrawalCurrentBalanceEl.textContent = `${coinBalance.toFixed(2)} Koin`;
+            }
+            // Clear previous messages and input
+            if (modalId === 'deposit-modal') {
+                depositAmountInput.value = '';
+                depositMessageModal.textContent = '';
+            } else if (modalId === 'withdrawal-modal') {
+                withdrawalAmountInput.value = '';
+                withdrawalMessageModal.textContent = '';
+            }
+        }
+
+        /**
+         * Closes a specified modal.
+         * @param {string} modalId - The ID of the modal to close.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        /**
+         * Handles the deposit logic from the modal.
+         */
+        function handleDeposit() {
+            const amount = parseFloat(depositAmountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                depositMessageModal.textContent = "Jumlah deposit tidak valid.";
+                depositMessageModal.classList.add('text-red-500');
+                return;
+            }
+            idrBalance += amount;
+            saveState();
+            updateUI();
+            depositMessageModal.textContent = `Berhasil deposit Rp ${amount.toLocaleString('id-ID')}.`;
+            depositMessageModal.classList.remove('text-red-500');
+            depositMessageModal.classList.add('text-green-500');
+            setTimeout(() => closeModal('deposit-modal'), 1500); // Close after 1.5 seconds
+        }
+
+        /**
+         * Handles the withdrawal logic from the modal.
+         */
+        function handleWithdrawal() {
+            const amount = parseFloat(withdrawalAmountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                withdrawalMessageModal.textContent = "Jumlah penarikan tidak valid.";
+                withdrawalMessageModal.classList.add('text-red-500');
+                return;
+            }
+            if (coinBalance < amount) {
+                withdrawalMessageModal.textContent = "Saldo koin tidak cukup untuk penarikan ini.";
+                withdrawalMessageModal.classList.add('text-red-500');
+                return;
+            }
+
+            coinBalance -= amount;
+            saveState();
+            updateUI();
+            withdrawalMessageModal.textContent = `Berhasil menarik ${amount.toFixed(2)} Koin.`;
+            withdrawalMessageModal.classList.remove('text-red-500');
+            withdrawalMessageModal.classList.add('text-green-500');
+            setTimeout(() => closeModal('withdrawal-modal'), 1500); // Close after 1.5 seconds
+        }
+
+        /**
+         * Shows the specified content section and hides others.
+         * @param {string} sectionId - The ID of the section to show.
+         */
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            // Close sidebar on mobile after selection
+            if (window.innerWidth < 768) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        /**
+         * Updates the running digital clock.
+         */
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            };
+            currentTimeEl.textContent = now.toLocaleString('id-ID', options);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(); // Initial UI update
+            updateClock(); // Initial clock update
+            setInterval(updateClock, 1000); // Update clock every second
+            setInterval(updateMiningCountdown, 1000); // Update mining countdown every second
+            setInterval(() => {
+                if (dailyOfferActive) {
+                    updateUI(); // Update offer countdown
+                }
+            }, 1000); // Update offer countdown every second
+
+            mineButton.addEventListener('click', claimMining);
+            activateOfferButton.addEventListener('click', activateOffer);
+            claimOfferButton.addEventListener('click', claimDailyOffer);
+
+            menuButton.addEventListener('click', () => {
+                sidebar.classList.add('open');
+            });
+
+            closeSidebarButton.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+            });
+        });
+
+        // Close sidebar if clicking outside of it on mobile
+        document.addEventListener('click', (event) => {
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickMenuButton = menuButton.contains(event.target);
+            if (window.innerWidth < 768 && sidebar.classList.contains('open') && !isClickInsideSidebar && !isClickMenuButton) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+    </script>
+</body>
+</html>
